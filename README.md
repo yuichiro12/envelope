@@ -1,6 +1,9 @@
 # envelope
 .env <-> aws parameter store
 
+- all parameters are stored as `SecureString`
+- 
+
 ## Installation
 ```
 go get -u github.com/yuichiro12/envelope
@@ -12,6 +15,11 @@ go get -u github.com/yuichiro12/envelope
 list all parameters in aws parameter store with given path
 ```
 envelope list /Myservice/MyApp/Dev
+```
+
+create local `.env` from parameter store:
+```
+envelope list /Myservice/MyApp/Dev > .env
 ```
 
 #### apply
