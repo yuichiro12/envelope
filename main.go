@@ -13,8 +13,8 @@ func main() {
 		Commands: []*cli.Command{
 			{
 				Name:      "list",
-				Usage:     "list aws parameter store with given prefix",
-				UsageText: "envelope get /Myservice/MyApp/Dev",
+				Usage:     "list all parameters in aws parameter store with given prefix",
+				UsageText: "envelope list /Myservice/MyApp/Dev",
 				Action:    cmd.List,
 			},
 			{
