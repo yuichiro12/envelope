@@ -1,4 +1,5 @@
 # envelope
+.env <-> aws parameter store
 
 ## Installation
 ```
