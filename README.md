@@ -2,7 +2,7 @@
 .env <-> aws parameter store
 
 - all parameters are stored as `SecureString`
-- 
+- `.env` is parsed by [joho/godotenv](https://github.com/joho/godotenv)
 
 ## Installation
 ```
