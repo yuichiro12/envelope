@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -71,7 +72,7 @@ func (d ParameterDiffs) Get(name string) *ParameterDiff {
 	return nil
 }
 
-func (d *ParameterDiff) PutParameterInput() *ssm.PutParameterInput {
+func (d *ParameterDiff) GetPutParameterInput() *ssm.PutParameterInput {
 	return new(ssm.PutParameterInput).SetName(d.Path + d.Name).SetValue(d.NewValue).SetType(ssm.ParameterTypeSecureString).SetOverwrite(true)
 }
 
@@ -85,21 +86,47 @@ func GetSSMService() (*ssm.SSM, error) {
 	return ssm.New(sess, aws.NewConfig()), nil
 }
 
-func List(c *cli.Context) error {
+func GetParametersByPath(path string) ([]*ssm.Parameter, error) {
+	var params []*ssm.Parameter
 	ssmsvc, err := GetSSMService()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	path := "/" + strings.Trim(c.Args().Get(0), "/") + "/"
 	withDecryption := true
-	params, err := ssmsvc.GetParametersByPath(&ssm.GetParametersByPathInput{
+	result, err := ssmsvc.GetParametersByPath(&ssm.GetParametersByPathInput{
 		Path:           &path,
 		WithDecryption: &withDecryption,
 	})
 	if err != nil {
+		return nil, err
+	}
+	params = append(params, result.Parameters...)
+	for result.NextToken != nil {
+		result, err = ssmsvc.GetParametersByPath(&ssm.GetParametersByPathInput{
+			Path:           &path,
+			NextToken:      result.NextToken,
+			WithDecryption: &withDecryption,
+		})
+		if err != nil {
+			return nil, err
+		}
+		params = append(params, result.Parameters...)
+	}
+	sort.Slice(params, func(i, j int) bool {
+		s := []string{*(params[i].Name), *(params[j].Name)}
+		sort.Strings(s)
+		return s[0] == *(params[i].Name)
+	})
+	return params, nil
+}
+
+func List(c *cli.Context) error {
+	path := "/" + strings.Trim(c.Args().Get(0), "/") + "/"
+	params, err := GetParametersByPath(path)
+	if err != nil {
 		return err
 	}
-	for _, param := range params.Parameters {
+	for _, param := range params {
 		fmt.Printf("%s=\"%s\"\n", strings.Replace(*param.Name, path, "", 1), strings.Replace(*param.Value, "\n", "\\n", -1))
 	}
 	return nil
@@ -110,7 +137,7 @@ func ApplyOperation(diffs ParameterDiffs, ssmsvc *ssm.SSM) error {
 	for _, diff := range diffs {
 		switch diff.State() {
 		case StateCreate, StateUpdate:
-			if _, err := ssmsvc.PutParameter(diff.PutParameterInput()); err != nil {
+			if _, err := ssmsvc.PutParameter(diff.GetPutParameterInput()); err != nil {
 				return err
 			}
 			fmt.Println(diff.String())
@@ -121,7 +148,6 @@ func ApplyOperation(diffs ParameterDiffs, ssmsvc *ssm.SSM) error {
 			}
 			fmt.Println(diff.String())
 		}
-
 	}
 	return nil
 }
@@ -137,7 +163,7 @@ func Apply(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	diffs, err := DiffOperation(path, ssmsvc, envMap)
+	diffs, err := DiffOperation(path, envMap)
 	if err != nil {
 		return err
 	}
@@ -154,17 +180,13 @@ func Apply(c *cli.Context) error {
 	return nil
 }
 
-func DiffOperation(path string, ssmsvc *ssm.SSM, envMap map[string]string) (ParameterDiffs, error) {
-	withDecryption := true
-	params, err := ssmsvc.GetParametersByPath(&ssm.GetParametersByPathInput{
-		Path:           &path,
-		WithDecryption: &withDecryption,
-	})
+func DiffOperation(path string, envMap map[string]string) (ParameterDiffs, error) {
+	params, err := GetParametersByPath(path)
 	if err != nil {
 		return nil, err
 	}
 	diffs := ParameterDiffs{}
-	for _, param := range params.Parameters {
+	for _, param := range params {
 		diffs = append(diffs, &ParameterDiff{Path: path, Name: strings.Replace(*param.Name, path, "", 1), OldValue: *param.Value})
 	}
 	for name, value := range envMap {
@@ -176,6 +198,12 @@ func DiffOperation(path string, ssmsvc *ssm.SSM, envMap map[string]string) (Para
 		}
 	}
 	fmt.Println(color.HiCyanString(" State   \tName"))
+	sort.Slice(diffs, func(i, j int) bool {
+		s := []string{diffs[i].Name, diffs[j].Name}
+		sort.Strings(s)
+		return s[0] == diffs[i].Name
+	})
+
 	for _, diff := range diffs {
 		fmt.Println(diff.String())
 	}
@@ -183,17 +211,13 @@ func DiffOperation(path string, ssmsvc *ssm.SSM, envMap map[string]string) (Para
 }
 
 func Diff(c *cli.Context) error {
-	ssmsvc, err := GetSSMService()
-	if err != nil {
-		return err
-	}
 	path := "/" + strings.Trim(c.Args().Get(0), "/") + "/"
 	filename := c.String("file")
 	envMap, err := godotenv.Read(filename)
 	if err != nil {
 		return err
 	}
-	_, err = DiffOperation(path, ssmsvc, envMap)
+	_, err = DiffOperation(path, envMap)
 	if err != nil {
 		return err
 	}

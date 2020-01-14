@@ -45,7 +45,7 @@ func TestDiffOperation(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := DiffOperation(tt.args.path, tt.args.ssmsvc, tt.args.envMap)
+			got, err := DiffOperation(tt.args.path, tt.args.envMap)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DiffOperation() error = %v, wantErr %v", err, tt.wantErr)
 				return
