@@ -8,17 +8,17 @@
 - all parameters are stored as `SecureString`
 - `.env` is parsed by [joho/godotenv](https://github.com/joho/godotenv)
 
-## Requirement
-Configure aws-go-sdk with your preferable way:
-
-https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html
-
 ## Installation
 ```
 go get -u github.com/yuichiro12/envelope
 ```
 
 ## Usage
+
+first of all, configure aws-go-sdk with your preferable way:
+
+https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html
+
 
 #### list
 list all parameters in aws parameter store with given path
