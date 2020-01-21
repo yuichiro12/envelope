@@ -1,5 +1,5 @@
 # envelope
-.env <-> aws parameter store
+.env <-> AWS Parameter Store
 
 ![envelope_list](https://user-images.githubusercontent.com/7312640/72822285-2ecaa100-3cb5-11ea-97a0-58a633438570.gif)
 
@@ -21,18 +21,18 @@ https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html
 
 
 #### list
-list all parameters in aws parameter store with given path
+list all parameters in AWS Parameter Store with given path
 ```
 envelope list /Myservice/MyApp/Dev
 ```
 
-create local `.env` from parameter store:
+create local `.env` from Parameter Store:
 ```
 envelope list /Myservice/MyApp/Dev > .env
 ```
 
 #### apply
-apply .env to aws parameter store with given prefix and filepath
+apply .env to AWS Parameter Store with given prefix and filepath
 ```
 envelope apply -f /path/to/.env /Myservice/MyApp/Dev
 ```
