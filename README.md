@@ -9,7 +9,7 @@
 - `.env` is parsed by [joho/godotenv](https://github.com/joho/godotenv)
 
 ## Requirement
-Configure aws-sdk with your preferable way:
+Configure aws-go-sdk with your preferable way:
 
 https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html
 
