@@ -27,6 +27,10 @@ func main() {
 						Aliases:  []string{"f"},
 						Required: true,
 					},
+					&cli.BoolFlag{
+						Name: "no-interactive",
+						Aliases:  []string{"y"},
+					},
 				},
 				Action: cmd.Apply,
 			},

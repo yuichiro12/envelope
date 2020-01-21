@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -167,16 +169,19 @@ func Apply(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Do you want to update? [y/N]:")
-	var in string
-	_, err = fmt.Scan(&in)
-	if err != nil {
-		return err
-	}
-	if in == "y" {
+	if c.Bool("y") {
+		fmt.Println("applying changes")
 		return ApplyOperation(diffs, ssmsvc)
+	} else {
+		fmt.Printf("Do you want to update? [y/N]:")
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		if scanner.Text() == "y" {
+			fmt.Println("applying changes")
+			return ApplyOperation(diffs, ssmsvc)
+		}
 	}
-	fmt.Println("Operation cancelled.")
+	fmt.Println("Operation cancelled by user.")
 	return nil
 }
 
