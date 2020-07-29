@@ -129,7 +129,7 @@ func List(c *cli.Context) error {
 		return err
 	}
 	for _, param := range params {
-		fmt.Printf("%s=\"%s\"\n", strings.Replace(*param.Name, path, "", 1), strings.Replace(*param.Value, "\n", "\\n", -1))
+		fmt.Printf("%s=%s\n", strings.Replace(*param.Name, path, "", 1), strings.Replace(*param.Value, "\n", "\\n", -1))
 	}
 	return nil
 }
