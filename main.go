@@ -16,6 +16,11 @@ func main() {
 				Usage:     "list all parameters in aws parameter store with given prefix",
 				UsageText: "envelope list /Myservice/MyApp/Dev",
 				Action:    cmd.List,
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name: "region",
+					},
+				},
 			},
 			{
 				Name:      "apply",
@@ -31,6 +36,9 @@ func main() {
 						Name: "no-interactive",
 						Aliases:  []string{"y"},
 					},
+					&cli.StringFlag{
+						Name: "region",
+					},
 				},
 				Action: cmd.Apply,
 			},
@@ -43,6 +51,9 @@ func main() {
 						Name:     "file",
 						Aliases:  []string{"f"},
 						Required: true,
+					},
+					&cli.StringFlag{
+						Name: "region",
 					},
 				},
 				Action: cmd.Diff,

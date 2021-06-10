@@ -17,6 +17,8 @@ import (
 
 type State string
 
+var aws_region string
+
 const (
 	StateCreate   State = "create"
 	StateUpdate   State = "update"
@@ -85,7 +87,17 @@ func GetSSMService() (*ssm.SSM, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ssm.New(sess, aws.NewConfig()), nil
+
+	var config *aws.Config
+
+	if aws_region == "" {
+		config = aws.NewConfig()
+	} else {
+		config = &aws.Config{
+			Region: aws.String(aws_region),
+		}
+	}
+	return ssm.New(sess, config), nil
 }
 
 func GetParametersByPath(path string) ([]*ssm.Parameter, error) {
@@ -123,6 +135,7 @@ func GetParametersByPath(path string) ([]*ssm.Parameter, error) {
 }
 
 func List(c *cli.Context) error {
+	aws_region = c.String("region")
 	path := "/" + strings.Trim(c.Args().Get(0), "/") + "/"
 	params, err := GetParametersByPath(path)
 	if err != nil {
@@ -155,6 +168,7 @@ func ApplyOperation(diffs ParameterDiffs, ssmsvc *ssm.SSM) error {
 }
 
 func Apply(c *cli.Context) error {
+	aws_region = c.String("region")
 	ssmsvc, err := GetSSMService()
 	if err != nil {
 		return err
@@ -216,6 +230,7 @@ func DiffOperation(path string, envMap map[string]string) (ParameterDiffs, error
 }
 
 func Diff(c *cli.Context) error {
+	aws_region = c.String("region")
 	path := "/" + strings.Trim(c.Args().Get(0), "/") + "/"
 	filename := c.String("file")
 	envMap, err := godotenv.Read(filename)
